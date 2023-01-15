@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">pcouceta</string>
+    <string name="title_activity_main">pcouceta</string>
+    <string name="package_name">com.pcou.pcouceta</string>
+    <string name="custom_url_scheme">com.pcou.pcouceta</string>
+</resources>

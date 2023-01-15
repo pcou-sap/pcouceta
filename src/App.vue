@@ -1,85 +1,106 @@
-<script setup>
-import { RouterLink, RouterView } from 'vue-router'
-import HelloWorld from './components/HelloWorld.vue'
-</script>
-
 <template>
-  <header>
-    <img alt="Vue logo" class="logo" src="@/assets/logo.svg" width="125" height="125" />
 
-    <div class="wrapper">
-      <HelloWorld msg="You did it!" />
+  <div class="page">
 
-      <nav>
-        <RouterLink to="/">Home</RouterLink>
-        <RouterLink to="/about">About</RouterLink>
-      </nav>
-    </div>
-  </header>
+      <div :translucent="true">
+        <div class="header">
+          <p class="title" >Camera Application</p>
+        </div>
+      </div>
+      
+      <div class="content" :fullscreen="true">
+        <div class="container">
+          <button @click="ClickImage()">Click Image</button>
+        </div>
+        <div class="container">
+          <img v-if="render" class="img" :src="imageUrl"/>
+        </div>
+        <div class="container">
+          <button v-if="render" @click="Save()">Save</button>
+          <button v-if="render" @click="Clear()">Clear</button>
+        </div>
+      </div>
 
-  <RouterView />
+  </div>
+
 </template>
+  
+  <script lang="ts">
+  //import { IonContent, IonHeader, IonPage, IonTitle, IonToolbar, IonImg, IonButton, IonRouter, } from '@ionic/vue';
+  import { defineComponent } from 'vue';
+  //import { useRouter } from 'vue-router';
+  import { Camera, CameraResultType } from '@capacitor/camera';
+  import { Filesystem, Directory, Encoding } from '@capacitor/filesystem';
+  // Importing PWA Elements
+  import { defineCustomElements } from '@ionic/pwa-elements/loader';
+  defineCustomElements(window);
+  
+  export default defineComponent({
+    
+    name: 'Home',
 
-<style scoped>
-header {
-  line-height: 1.5;
-  max-height: 100vh;
-}
-
-.logo {
-  display: block;
-  margin: 0 auto 2rem;
-}
-
-nav {
-  width: 100%;
-  font-size: 12px;
-  text-align: center;
-  margin-top: 2rem;
-}
-
-nav a.router-link-exact-active {
-  color: var(--color-text);
-}
-
-nav a.router-link-exact-active:hover {
-  background-color: transparent;
-}
-
-nav a {
-  display: inline-block;
-  padding: 0 1rem;
-  border-left: 1px solid var(--color-border);
-}
-
-nav a:first-of-type {
-  border: 0;
-}
-
-@media (min-width: 1024px) {
-  header {
+    data(){ 
+      return {
+        imageUrl : '',
+        render: false
+      }
+    },
+    
+    methods: {
+    
+      async Clear() {
+        this.imageUrl = '';
+        this.render = false;
+      },
+      
+      async ClickImage() {
+        await Camera.getPhoto({
+          quality: 90,
+          allowEditing: false,
+          resultType: CameraResultType.Uri
+          }).then((image) => {
+            this.render = true;
+            this.imageUrl = String(image.webPath)
+        });
+      },
+      
+      convertBlobToBase64 (blob: Blob) {
+        return new Promise((resolve, reject) =>{
+          const reader = new FileReader;
+          reader.onerror = reject;
+          reader.onload = () => {
+            resolve(reader.result);
+          };
+          reader.readAsDataURL(blob);
+        });
+      },
+      
+      async Save() {
+          const response = await fetch(this.imageUrl);
+          const blob = await response.blob();
+          const base64Data = await this.convertBlobToBase64(blob) as string;
+          console.log('url', base64Data);
+          const savedFile = await Filesystem.writeFile({
+              path: new Date().getTime() + '.jpeg',
+              data: base64Data,
+              directory: Directory.Documents
+        });
+      }
+    }
+  });
+  </script>
+  
+  <style scoped>
+  .container {
+    flex: 1;
     display: flex;
-    place-items: center;
-    padding-right: calc(var(--section-gap) / 2);
+    width: 100%;
+    justify-content: center;
+    align-content: center;
+    margin-top: 12px;
   }
-
-  .logo {
-    margin: 0 2rem 0 0;
+  .img {
+    height: 300px;
+    width: 300px;
   }
-
-  header .wrapper {
-    display: flex;
-    place-items: flex-start;
-    flex-wrap: wrap;
-  }
-
-  nav {
-    text-align: left;
-    margin-left: -1rem;
-    font-size: 1rem;
-
-    padding: 1rem 0;
-    margin-top: 1rem;
-  }
-}
-</style>
+  </style>
