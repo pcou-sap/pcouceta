@@ -31,9 +31,7 @@
   //import { useRouter } from 'vue-router';
   import { Camera, CameraResultType } from '@capacitor/camera';
   import { Filesystem, Directory, Encoding } from '@capacitor/filesystem';
-  // Importing PWA Elements
-  import { defineCustomElements } from '@ionic/pwa-elements/loader';
-  defineCustomElements(window);
+
   
   export default defineComponent({
     
